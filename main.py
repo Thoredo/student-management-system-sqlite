@@ -22,16 +22,26 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle("Student Management System")
 
+        # Add menu bar items
         file_menu_item = self.menuBar().addMenu("&File")
         help_menu_item = self.menuBar().addMenu("&Help")
+        edit_menu_item = self.menuBar().addMenu("&Edit")
 
+        # Add an add student option to file menu
         add_student_action = QAction("Add Student", self)
         add_student_action.triggered.connect(self.insert_student)
         file_menu_item.addAction(add_student_action)
 
+        # Add about option to help menu
         about_action = QAction("About", self)
         help_menu_item.addAction(about_action)
 
+        # Add search option to Edit menu
+        search_action = QAction("Search", self)
+        search_action.triggered.connect(self.search)
+        edit_menu_item.addAction(search_action)
+
+        # Add table
         self.table = QTableWidget()
         self.table.setColumnCount(4)
         self.table.setHorizontalHeaderLabels(("Id", "Name", "Course", "Mobile"))
@@ -51,6 +61,10 @@ class MainWindow(QMainWindow):
 
     def insert_student(self):
         dialog = InsertDialog()
+        dialog.exec()
+
+    def search(self):
+        dialog = SearchDialog()
         dialog.exec()
 
 
@@ -100,6 +114,31 @@ class InsertDialog(QDialog):
         cursor.close()
         connection.close()
         student_management.load_data()
+
+
+class SearchDialog(QDialog):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Search Student")
+        self.setFixedWidth(300)
+        self.setFixedHeight(300)
+
+        layout = QVBoxLayout()
+
+        # Add Search Widget
+        self.search_box = QLineEdit()
+        self.search_box.setPlaceholderText("Search")
+        layout.addWidget(self.search_box)
+
+        button = QPushButton("Search")
+        button.clicked.connect(self.search_something)
+        button.setStyleSheet("QPushButton {background-color: #0000FF; color: white;}")
+        layout.addWidget(button)
+
+        self.setLayout(layout)
+
+    def search_something(self):
+        pass
 
 
 app = QApplication(sys.argv)
