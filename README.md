@@ -1,0 +1,2 @@
+# What is this project?
+This project creates a small GUI program where teachers can modify their student database, it can add students, edit or delete them from the database. Their name, course and phonenumber can be added.
