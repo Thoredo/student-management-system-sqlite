@@ -13,6 +13,7 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
     QComboBox,
     QToolBar,
+    QStatusBar,
 )
 from PyQt6.QtGui import QAction, QIcon
 import sys
@@ -59,6 +60,13 @@ class MainWindow(QMainWindow):
         toolbar.addAction(add_student_action)
         toolbar.addAction(search_action)
 
+        # Create statusbar
+        self.statusbar = QStatusBar()
+        self.setStatusBar(self.statusbar)
+
+        # Detect a cell click
+        self.table.cellClicked.connect(self.cell_clicked)
+
     def load_data(self):
         connection = sqlite3.connect("database.db")
         result = connection.execute("SELECT * FROM students")
@@ -76,6 +84,29 @@ class MainWindow(QMainWindow):
 
     def search(self):
         dialog = SearchDialog()
+        dialog.exec()
+
+    def cell_clicked(self):
+        edit_button = QPushButton("Edit Record")
+        edit_button.clicked.connect(self.edit_record)
+
+        delete_button = QPushButton("Delete Record")
+        delete_button.clicked.connect(self.delete_record)
+
+        children = self.findChildren(QPushButton)
+        if children:
+            for child in children:
+                self.statusbar.removeWidget(child)
+
+        self.statusbar.addWidget(edit_button)
+        self.statusbar.addWidget(delete_button)
+
+    def edit_record(self):
+        dialog = EditDialog()
+        dialog.exec()
+
+    def delete_record(self):
+        dialog = DeleteDialog()
         dialog.exec()
 
 
@@ -153,6 +184,14 @@ class SearchDialog(QDialog):
         items = student_management.table.findItems(name, Qt.MatchFlag.MatchFixedString)
         for item in items:
             student_management.table.item(item.row(), 1).setSelected(True)
+
+
+class EditDialog(QDialog):
+    pass
+
+
+class DeleteDialog(QDialog):
+    pass
 
 
 app = QApplication(sys.argv)
