@@ -52,7 +52,7 @@ class MainWindow(QMainWindow):
 
         # Add search option to Edit menu
         search_action = QAction(QIcon("icons/search.png"), "Search", self)
-        search_action.triggered.connect(self.search)
+        search_action.triggered.connect(self.search_student)
         edit_menu_item.addAction(search_action)
 
         # Add table
@@ -78,8 +78,11 @@ class MainWindow(QMainWindow):
         self.table.cellClicked.connect(self.cell_clicked)
 
     def load_data(self):
-        connection = Database.connect()
+        # Load the data from our database
+        connection = Database().connect()
         result = connection.execute("SELECT * FROM students")
+
+        # Add the data to the main window table
         self.table.setRowCount(0)
         for row_number, row_data in enumerate(result):
             self.table.insertRow(row_number)
@@ -92,22 +95,26 @@ class MainWindow(QMainWindow):
         dialog = InsertDialog()
         dialog.exec()
 
-    def search(self):
+    def search_student(self):
         dialog = SearchDialog()
         dialog.exec()
 
     def cell_clicked(self):
+        # Create edit button
         edit_button = QPushButton("Edit Record")
         edit_button.clicked.connect(self.edit_record)
 
+        # Create delete button
         delete_button = QPushButton("Delete Record")
         delete_button.clicked.connect(self.delete_record)
 
+        # Prevent duplicate buttons when clicking other cell
         children = self.findChildren(QPushButton)
         if children:
             for child in children:
                 self.statusbar.removeWidget(child)
 
+        # Add buttons to statusbar
         self.statusbar.addWidget(edit_button)
         self.statusbar.addWidget(delete_button)
 
@@ -158,11 +165,16 @@ class InsertDialog(QDialog):
         self.setLayout(layout)
 
     def add_student(self):
+        # Define value variables
         name = self.student_name.text()
         course = self.course_name.itemText(self.course_name.currentIndex())
         mobile = self.mobile.text()
-        connection = Database.connect()
+
+        # Establish database connection
+        connection = Database().connect()
         cursor = connection.cursor()
+
+        # Add values to our database and close the connection
         cursor.execute(
             "INSERT INTO students (name, course, mobile) VALUES (?, ?, ?)",
             (name, course, mobile),
@@ -170,6 +182,8 @@ class InsertDialog(QDialog):
         connection.commit()
         cursor.close()
         connection.close()
+
+        # Refresh the mainwindow table
         student_management.load_data()
 
 
@@ -182,11 +196,12 @@ class SearchDialog(QDialog):
 
         layout = QVBoxLayout()
 
-        # Add Search Widget
+        # Add search input
         self.searched_name = QLineEdit()
         self.searched_name.setPlaceholderText("Search")
         layout.addWidget(self.searched_name)
 
+        # Add search button
         button = QPushButton("Search")
         button.clicked.connect(self.search)
         button.setStyleSheet("QPushButton {background-color: #0000FF; color: white;}")
@@ -246,11 +261,16 @@ class EditDialog(QDialog):
         self.setLayout(layout)
 
     def update_student(self):
+        # Define value variables
         name = self.student_name.text()
         course = self.course_name.itemText(self.course_name.currentIndex())
         mobile = self.mobile.text()
-        connection = Database.connect()
+
+        # Establish connection
+        connection = Database().connect()
         cursor = connection.cursor()
+
+        # Update given values and close connection
         cursor.execute(
             "UPDATE students SET name = ?, course = ?, mobile = ? WHERE id = ?",
             (name, course, mobile, self.student_id),
@@ -274,16 +294,19 @@ class DeleteDialog(QDialog):
         super().__init__()
         self.setWindowTitle("Update Student Data")
 
+        # Define widgets for the dialog
         layout = QGridLayout()
         confirmation = QLabel("Are you sure you want to delete?")
         yes_button = QPushButton("Yes")
         no_button = QPushButton("No")
 
+        # Add widgets to dialog
         layout.addWidget(confirmation, 0, 0, 1, 2)
         layout.addWidget(yes_button, 1, 0)
         layout.addWidget(no_button, 1, 1)
         self.setLayout(layout)
 
+        # Make dialog window close when user clicks yes or no
         yes_button.clicked.connect(self.delete_student)
         yes_button.clicked.connect(self.close)
         no_button.clicked.connect(self.close)
@@ -293,8 +316,11 @@ class DeleteDialog(QDialog):
         index = student_management.table.currentRow()
         student_id = student_management.table.item(index, 0).text()
 
-        connection = Database.connect()
+        # Establish connection
+        connection = Database().connect()
         cursor = connection.cursor()
+
+        # Delete selected student from database and close connection
         cursor.execute("DELETE from students WHERE id = ?", (student_id,))
         connection.commit()
         cursor.close()
@@ -303,6 +329,7 @@ class DeleteDialog(QDialog):
         # Refresh table
         student_management.load_data()
 
+        # Add confirmation message after succesfull deletion
         confirmation_widget = QMessageBox()
         confirmation_widget.setWindowTitle("Success")
         confirmation_widget.setText("The record was delete succesfully!")
