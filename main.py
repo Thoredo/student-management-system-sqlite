@@ -2,7 +2,6 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (
     QApplication,
     QLabel,
-    QWidget,
     QGridLayout,
     QLineEdit,
     QPushButton,
@@ -40,6 +39,7 @@ class MainWindow(QMainWindow):
         # Add about option to help menu
         about_action = QAction("About", self)
         help_menu_item.addAction(about_action)
+        about_action.triggered.connect(self.about)
 
         # Add search option to Edit menu
         search_action = QAction(QIcon("icons/search.png"), "Search", self)
@@ -108,6 +108,10 @@ class MainWindow(QMainWindow):
 
     def delete_record(self):
         dialog = DeleteDialog()
+        dialog.exec()
+
+    def about(self):
+        dialog = AboutDialog()
         dialog.exec()
 
 
@@ -300,6 +304,17 @@ class DeleteDialog(QDialog):
         if children:
             for child in children:
                 student_management.statusbar.removeWidget(child)
+
+
+class AboutDialog(QMessageBox):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("About")
+        content = """
+This app was created during the course "The Python Mega Course".
+Feel free to modify and reuse this app.
+"""
+        self.setText(content)
 
 
 app = QApplication(sys.argv)
